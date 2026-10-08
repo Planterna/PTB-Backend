@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: ptb_postgres
+    environment:
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ptb_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - ptb_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  ptb_pgdata:

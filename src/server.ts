@@ -7,11 +7,10 @@ import movimientosRoutes from './routes/movimientos.routes';
 import cuentasRoutes from './routes/cuentas.routes';
 import { setupSwagger } from './config/swagger';
 import { errorHandler } from './middlewares/error.middleware';
-
-dotenv.config();
+import { env } from './config/env.config';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 app.use(cors());
 app.use(express.json());
@@ -31,7 +30,7 @@ app.get('/api/health', (req, res) => {
 // Global error handler
 app.use(errorHandler);
 
-if (process.env.NODE_ENV !== 'production') {
+if (env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });

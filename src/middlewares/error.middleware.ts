@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { env } from '../config/env.config';
 
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {
   console.error('Unhandled error:', err);
@@ -8,6 +9,6 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   
   res.status(statusCode).json({
     error: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    ...(env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };

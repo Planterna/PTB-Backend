@@ -99,6 +99,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     token,
     user: {
       id: user.id_usuario,
+      cedula: user.cedula_usuario,
       nombres: user.nombres_usuario,
       email: user.email_usuario,
     },

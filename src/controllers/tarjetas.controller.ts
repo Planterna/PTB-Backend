@@ -1,55 +1,57 @@
-import { Response } from 'express';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 
-export const getTarjetas = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const id_usuario = req.user?.id;
-    
-    if (!id_usuario) {
-      res.status(401).json({ error: 'Usuario no autorizado' });
-      return;
-    }
+export const getTarjetas = async (req: Request, res: Response): Promise<void> => {
+  const id_usuario = req.user!.id;
 
-    const tarjetas = await prisma.tarjeta.findMany({
-      where: { id_usuario },
-      orderBy: { fecha_creacion: 'desc' },
-    });
+  const tarjetas = await prisma.tarjeta.findMany({
+    where: { id_usuario },
+    orderBy: { fecha_creacion: 'desc' },
+  });
 
-    res.status(200).json(tarjetas);
-  } catch (error) {
-    console.error('Error en getTarjetas:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
+  res.status(200).json(tarjetas);
 };
 
-export const createTarjeta = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const id_usuario = req.user?.id;
-    const { nombre_tarjeta, numero_tarjeta, saldo_tarjeta } = req.body;
+export const createTarjeta = async (req: Request, res: Response): Promise<void> => {
+  const id_usuario = req.user!.id;
+  const { id_cuenta, nombre_tarjeta, tipo_tarjeta } = req.body;
 
-    if (!id_usuario) {
-      res.status(401).json({ error: 'Usuario no autorizado' });
-      return;
-    }
+  const cuenta = await prisma.cuenta.findFirst({
+    where: { id_cuenta, id_usuario }
+  });
 
-    if (!nombre_tarjeta || !numero_tarjeta) {
-      res.status(400).json({ error: 'Nombre y número de tarjeta son obligatorios' });
-      return;
-    }
+  if (!cuenta) {
+    res.status(404).json({ error: 'La cuenta no existe o no pertenece al usuario' });
+    return;
+  }
 
-    const nuevaTarjeta = await prisma.tarjeta.create({
-      data: {
+  if (tipo_tarjeta === 'credito') {
+    const cantidadTarjetasCredito = await prisma.tarjeta.count({
+      where: {
         id_usuario,
-        nombre_tarjeta,
-        numero_tarjeta,
-        saldo_tarjeta: saldo_tarjeta || 0.0,
-      },
+        tipo_tarjeta: 'credito'
+      }
     });
 
-    res.status(201).json(nuevaTarjeta);
-  } catch (error) {
-    console.error('Error en createTarjeta:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    if (cantidadTarjetasCredito >= 5) {
+      res.status(400).json({ error: 'Has alcanzado el límite máximo de 5 tarjetas de crédito' });
+      return;
+    }
   }
+
+  // Generar numero de tarjeta de 16 digitos, Visa empieza con 4
+  const random12 = Math.floor(100000000000 + Math.random() * 900000000000).toString();
+  const numero_tarjeta = `4000${random12}`;
+
+  const nuevaTarjeta = await prisma.tarjeta.create({
+    data: {
+      id_usuario,
+      id_cuenta,
+      nombre_tarjeta,
+      numero_tarjeta,
+      tipo_tarjeta,
+    },
+  });
+
+  res.status(201).json(nuevaTarjeta);
 };

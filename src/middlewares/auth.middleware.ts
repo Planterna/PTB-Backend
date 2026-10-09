@@ -3,11 +3,20 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key';
 
-export interface AuthRequest extends Request {
-  user?: any;
+export interface UserPayload {
+  id: string;
+  email: string;
 }
 
-export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunction): void => {
+declare global {
+  namespace Express {
+    interface Request {
+      user?: UserPayload;
+    }
+  }
+}
+
+export const authenticateJWT = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
   if (authHeader) {
@@ -18,7 +27,7 @@ export const authenticateJWT = (req: AuthRequest, res: Response, next: NextFunct
         res.status(403).json({ error: 'Token inválido o expirado' });
         return;
       }
-      req.user = user;
+      req.user = user as UserPayload;
       next();
     });
   } else {

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getTarjetas, createTarjeta } from '../controllers/tarjetas.controller';
 import { authenticateJWT } from '../middlewares/auth.middleware';
+import { validate } from '../middlewares/validate.middleware';
+import { createTarjetaSchema } from '../schemas/tarjetas.schema';
 
 const router = Router();
 
@@ -45,15 +47,18 @@ router.get('/', getTarjetas);
  *           schema:
  *             type: object
  *             required:
+ *               - id_cuenta
  *               - nombre_tarjeta
  *               - numero_tarjeta
  *             properties:
+ *               id_cuenta:
+ *                 type: string
+ *                 format: uuid
  *               nombre_tarjeta:
  *                 type: string
  *               numero_tarjeta:
  *                 type: string
- *               saldo_tarjeta:
- *                 type: number
+ *                 description: Número único de 16 dígitos
  *     responses:
  *       201:
  *         description: Tarjeta creada exitosamente
@@ -62,6 +67,6 @@ router.get('/', getTarjetas);
  *       401:
  *         description: No autorizado
  */
-router.post('/', createTarjeta);
+router.post('/', validate(createTarjetaSchema), createTarjeta);
 
 export default router;

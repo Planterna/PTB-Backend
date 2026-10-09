@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getMovimientos, createMovimiento } from '../controllers/movimientos.controller';
 import { authenticateJWT } from '../middlewares/auth.middleware';
+import { validate } from '../middlewares/validate.middleware';
+import { createMovimientoSchema } from '../schemas/movimientos.schema';
 
 const router = Router();
 
@@ -64,6 +66,6 @@ router.get('/', getMovimientos);
  *       401:
  *         description: No autorizado
  */
-router.post('/', createMovimiento);
+router.post('/', validate(createMovimientoSchema), createMovimiento);
 
 export default router;

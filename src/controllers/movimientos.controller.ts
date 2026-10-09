@@ -1,62 +1,56 @@
-import { Response } from 'express';
-import { TipoMovimiento } from '@prisma/client';
-import { AuthRequest } from '../middlewares/auth.middleware';
+import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 
-export const getMovimientos = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const id_usuario = req.user?.id;
-    
-    if (!id_usuario) {
-      res.status(401).json({ error: 'Usuario no autorizado' });
-      return;
-    }
+export const getMovimientos = async (req: Request, res: Response): Promise<void> => {
+  const id_usuario = req.user!.id;
 
-    const movimientos = await prisma.movimiento.findMany({
-      where: { id_usuario },
-      orderBy: { fecha_movimiento: 'desc' },
-    });
+  const movimientos = await prisma.movimiento.findMany({
+    where: { id_usuario },
+    orderBy: { fecha_movimiento: 'desc' },
+  });
 
-    res.status(200).json(movimientos);
-  } catch (error) {
-    console.error('Error en getMovimientos:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
+  res.status(200).json(movimientos);
 };
 
-export const createMovimiento = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const id_usuario = req.user?.id;
-    const { nombre_movimiento, valor_movimiento, tipo_movimiento } = req.body;
+export const createMovimiento = async (req: Request, res: Response): Promise<void> => {
+  const id_usuario = req.user!.id;
+  const { id_cuenta, nombre_movimiento, valor_movimiento, tipo_movimiento } = req.body;
 
-    if (!id_usuario) {
-      res.status(401).json({ error: 'Usuario no autorizado' });
-      return;
-    }
+  const cuenta = await prisma.cuenta.findFirst({
+    where: { id_cuenta, id_usuario }
+  });
 
-    if (!nombre_movimiento || valor_movimiento === undefined || !tipo_movimiento) {
-      res.status(400).json({ error: 'Nombre, valor y tipo de movimiento son obligatorios' });
-      return;
-    }
+  if (!cuenta) {
+    res.status(404).json({ error: 'La cuenta no existe o no pertenece al usuario' });
+    return;
+  }
 
-    // Validar tipo_movimiento contra el enum TipoMovimiento
-    if (!Object.values(TipoMovimiento).includes(tipo_movimiento)) {
-       res.status(400).json({ error: 'Tipo de movimiento inválido' });
-       return;
-    }
+  let ajusteSaldo = valor_movimiento;
+  if (['purchase', 'subscription', 'transfer'].includes(tipo_movimiento)) {
+    ajusteSaldo = -Math.abs(valor_movimiento);
+  } else if (tipo_movimiento === 'deposit') {
+    ajusteSaldo = Math.abs(valor_movimiento);
+  }
 
-    const nuevoMovimiento = await prisma.movimiento.create({
+  const [nuevoMovimiento, cuentaActualizada] = await prisma.$transaction([
+    prisma.movimiento.create({
       data: {
         id_usuario,
+        id_cuenta,
         nombre_movimiento,
-        valor_movimiento: parseFloat(valor_movimiento),
+        valor_movimiento,
         tipo_movimiento,
       },
-    });
+    }),
+    prisma.cuenta.update({
+      where: { id_cuenta },
+      data: {
+        saldo_cuenta: {
+          increment: ajusteSaldo
+        }
+      }
+    })
+  ]);
 
-    res.status(201).json(nuevoMovimiento);
-  } catch (error) {
-    console.error('Error en createMovimiento:', error);
-    res.status(500).json({ error: 'Error interno del servidor' });
-  }
+  res.status(201).json(nuevoMovimiento);
 };

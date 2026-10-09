@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { register, login } from '../controllers/auth.controller';
+import { validate } from '../middlewares/validate.middleware';
+import { registerSchema, loginSchema } from '../schemas/auth.schema';
 
 const router = Router();
 
@@ -42,7 +44,7 @@ const router = Router();
  *       400:
  *         description: Error en la solicitud o el usuario ya existe
  */
-router.post('/register', register);
+router.post('/register', validate(registerSchema), register);
 
 /**
  * @swagger
@@ -69,7 +71,9 @@ router.post('/register', register);
  *         description: Login exitoso, devuelve el JWT
  *       401:
  *         description: Credenciales inválidas
+ *       400:
+ *         description: Error de validación
  */
-router.post('/login', login);
+router.post('/login', validate(loginSchema), login);
 
 export default router;

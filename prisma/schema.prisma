@@ -18,24 +18,54 @@ model Usuario {
   fecha_actualizacion DateTime @updatedAt
 
   tarjetas            Tarjeta[]
+  cuentas             Cuenta[]
   movimientos         Movimiento[]
 
   @@map("usuarios")
 }
 
+enum TipoTarjeta {
+  debito
+  credito
+}
+
 model Tarjeta {
   id_tarjeta          String   @id @default(uuid()) @db.Uuid
   id_usuario          String   @db.Uuid
+  id_cuenta           String   @db.Uuid
   nombre_tarjeta      String   @db.VarChar(100)
-  numero_tarjeta      String   @db.VarChar(20)
-  saldo_tarjeta       Float    @default(0.0)
+  numero_tarjeta      String   @unique @db.VarChar(20)
+  tipo_tarjeta        TipoTarjeta
   
   fecha_creacion      DateTime @default(now())
   fecha_actualizacion DateTime @updatedAt
 
   usuario             Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  cuenta              Cuenta   @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: Cascade)
 
   @@map("tarjetas")
+}
+
+enum TipoCuenta {
+  ahorro
+  corriente
+}
+
+model Cuenta {
+  id_cuenta           String   @id @default(uuid()) @db.Uuid
+  id_usuario          String   @db.Uuid
+  tipo_cuenta         TipoCuenta
+  numero_cuenta       String   @unique @db.VarChar(10)
+  saldo_cuenta        Float    @default(0.0)
+  
+  fecha_creacion      DateTime @default(now())
+  fecha_actualizacion DateTime @updatedAt
+
+  usuario             Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  movimientos         Movimiento[]
+  tarjetas            Tarjeta[]
+
+  @@map("cuentas")
 }
 
 enum TipoMovimiento {
@@ -48,6 +78,7 @@ enum TipoMovimiento {
 model Movimiento {
   id_movimiento       String   @id @default(uuid()) @db.Uuid
   id_usuario          String   @db.Uuid
+  id_cuenta           String   @db.Uuid
   nombre_movimiento   String   @db.VarChar(255)
   valor_movimiento    Float
   fecha_movimiento    DateTime @default(now())
@@ -57,6 +88,7 @@ model Movimiento {
   fecha_actualizacion DateTime @updatedAt
 
   usuario             Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  cuenta              Cuenta   @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: Cascade)
 
   @@map("movimientos")
 }

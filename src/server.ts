@@ -12,7 +12,7 @@ import { errorHandler } from './middlewares/error.middleware';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT;
 
 app.use(cors());
 app.use(express.json());
@@ -24,6 +24,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/usuario', usuarioRoutes);
 app.use('/api/cuentas', cuentasRoutes);
 app.use('/api/tarjetas', tarjetasRoutes);
+app.use('/api/cuentas', cuentasRoutes);
 app.use('/api/movimientos', movimientosRoutes);
 
 app.get('/api/health', (req, res) => {

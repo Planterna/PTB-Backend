@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { register, login } from '../controllers/auth.controller';
+import { validate } from '../middlewares/validate.middleware';
+import { registerSchema, loginSchema } from '../schemas/auth.schema';
 
 const router = Router();
 
@@ -56,7 +58,7 @@ const router = Router();
  *       409:
  *         description: Conflicto - el nombre de usuario, cédula o email ya se encuentra registrado
  */
-router.post('/register', register);
+router.post('/register', validate(registerSchema), register);
 
 /**
  * @swagger
@@ -88,7 +90,9 @@ router.post('/register', register);
  *         description: Nombre de usuario o contraseña faltantes
  *       401:
  *         description: Credenciales inválidas
+ *       400:
+ *         description: Error de validación
  */
-router.post('/login', login);
+router.post('/login', validate(loginSchema), login);
 
 export default router;

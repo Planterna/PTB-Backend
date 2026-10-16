@@ -20,7 +20,6 @@ export const register = async (req: Request, res: Response, next: NextFunction):
   } catch (error) {
     next(error);
   }
-};
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -42,4 +41,27 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
   } catch (error) {
     next(error);
   }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password_usuario);
+  if (!isPasswordValid) {
+    res.status(401).json({ error: 'Credenciales inválidas' });
+    return;
+  }
+
+  const token = jwt.sign(
+    { id: user.id_usuario, email: user.email_usuario },
+    JWT_SECRET,
+    { expiresIn: '1d' }
+  );
+
+  res.status(200).json({
+    message: 'Login exitoso',
+    token,
+    user: {
+      id: user.id_usuario,
+      cedula: user.cedula_usuario,
+      nombres: user.nombres_usuario,
+      email: user.email_usuario,
+    },
+  });
 };

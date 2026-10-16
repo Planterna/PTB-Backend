@@ -1,11 +1,9 @@
 import { z } from 'zod';
-import { TipoCuenta } from '@prisma/client';
 
 export const createCuentaSchema = z.object({
   body: z.object({
-    tipo_cuenta: z.nativeEnum(TipoCuenta, {
-      errorMap: () => ({ message: 'Tipo de cuenta inválido (debe ser ahorro o corriente)' }),
-    }),
+    tipo_cuenta: z.string().min(1, 'El tipo de cuenta es obligatorio'),
     saldo_cuenta: z.coerce.number().optional().default(0.0),
+    numero_cuenta: z.string().optional(),
   }),
 });

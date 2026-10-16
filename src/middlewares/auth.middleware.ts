@@ -2,11 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedError, ForbiddenError } from '../errors/http.error';
 
-const JWT_SECRET = env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key';
 
 export interface UserPayload {
   id: string;
   email: string;
+}
+
+export interface AuthRequest extends Request {
+  user?: any;
 }
 
 export const authenticateJWT = (req: AuthRequest, _res: Response, next: NextFunction): void => {

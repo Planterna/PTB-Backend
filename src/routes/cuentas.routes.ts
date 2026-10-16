@@ -7,6 +7,8 @@ import {
   validarCuentaInterbancaria,
   transferir,
   transferirInterbancaria,
+  crearCuentaCorriente,
+  getSolicitudesCuentaCorriente,
 } from '../controllers/cuentas.controller';
 import { authenticateJWT } from '../middlewares/auth.middleware';
 
@@ -280,5 +282,70 @@ router.post('/transferir', transferir);
  *         description: La cuenta interbancaria destino no existe o no se encuentra habilitada
  */
 router.post('/transferir-interbancaria', transferirInterbancaria);
+
+/**
+ * @swagger
+ * /api/cuentas/corriente:
+ *   post:
+ *     summary: Crear o solicitar apertura de Cuenta Corriente
+ *     description: Guarda la información del formulario migratorio, fiscal y de chequera. Si el método de pago es DEBITO_AHORROS, debita $350 de la cuenta de ahorros y crea la cuenta corriente con $350 iniciales. Si es PAGO_VENTANILLA, registra la solicitud en espera de depósito físico.
+ *     tags: [Cuentas y Transferencias]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - modelo_chequera
+ *               - agencia_retiro
+ *               - metodo_pago
+ *             properties:
+ *               tiene_residencia_usa:
+ *                 type: boolean
+ *               declara_impuestos_otro_pais:
+ *                 type: boolean
+ *               modelo_chequera:
+ *                 type: string
+ *                 example: "Institucional"
+ *               numero_cheques:
+ *                 type: number
+ *                 example: 20
+ *               tipo_chequera:
+ *                 type: string
+ *                 example: "Con talón"
+ *               nombre_en_documentos:
+ *                 type: string
+ *                 example: "Lois Becket"
+ *               agencia_retiro:
+ *                 type: string
+ *                 example: "Agencia Principal Centro"
+ *               metodo_pago:
+ *                 type: string
+ *                 enum: [DEBITO_AHORROS, PAGO_VENTANILLA]
+ *                 example: "DEBITO_AHORROS"
+ *     responses:
+ *       201:
+ *         description: Cuenta corriente creada o solicitud registrada
+ *       400:
+ *         description: Saldo insuficiente o datos inválidos
+ */
+router.post('/corriente', crearCuentaCorriente);
+
+/**
+ * @swagger
+ * /api/cuentas/solicitudes-corriente:
+ *   get:
+ *     summary: Consultar historial de solicitudes de cuenta corriente del usuario
+ *     tags: [Cuentas y Transferencias]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Listado de solicitudes
+ */
+router.get('/solicitudes-corriente', getSolicitudesCuentaCorriente);
 
 export default router;

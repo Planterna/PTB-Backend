@@ -49,9 +49,9 @@ export class AuthService {
       throw new ConflictError('El usuario ya existe (datos duplicados)');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     try {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const defaultSavingsNumber = '10' + Math.floor(10000000 + Math.random() * 90000000).toString();
       const newUser = await prisma.usuario.create({
         data: {
           cedula_usuario: cedula,
@@ -59,6 +59,13 @@ export class AuthService {
           usuario: usuario,
           email_usuario: email,
           password_usuario: hashedPassword,
+          cuentas: {
+            create: {
+              tipo_cuenta: 'ahorro',
+              numero_cuenta: defaultSavingsNumber,
+              saldo_cuenta: 0.0, // Saldo inicial 0 para cuentas de ahorro nuevas
+            },
+          },
         },
       });
 

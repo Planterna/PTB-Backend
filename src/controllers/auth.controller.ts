@@ -10,6 +10,8 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       message: 'Usuario registrado exitosamente',
       user: {
         id: newUser.id_usuario,
+        cedula: newUser.cedula_usuario,
+        cedula_usuario: newUser.cedula_usuario,
         nombres: newUser.nombres_usuario,
         usuario: newUser.usuario,
         email: newUser.email_usuario,
@@ -30,6 +32,8 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       token,
       user: {
         id: user.id_usuario,
+        cedula: user.cedula_usuario,
+        cedula_usuario: user.cedula_usuario,
         nombres: user.nombres_usuario,
         usuario: user.usuario,
         email: user.email_usuario,

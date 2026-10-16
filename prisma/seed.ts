@@ -9,7 +9,7 @@ async function main() {
   const hashedPassword = await bcrypt.hash('password123', 10);
 
   // ==========================================
-  // 1. TIPOS DE MOVIMIENTO (tabla normalizada `tipos_movimiento`)
+  // 1. TIPOS DE MOVIMIENTO (tabla `tipos_movimiento`)
   // ==========================================
   const tiposMovimientoData = [
     { codigo: 'transfer', nombre: 'Transferencia', descripcion: 'Transferencias locales e interbancarias' },
@@ -56,9 +56,10 @@ async function main() {
   console.log('✅ Catálogo de Bancos inicializado.');
 
   // ==========================================
-  // 3. CUENTAS INTERBANCARIAS (simulación de otros bancos)
+  // 3. CUENTAS INTERBANCARIAS (simulación de otros bancos: Ahorros y Corriente)
   // ==========================================
   const cuentasInterbancariasData = [
+    // Banco Pichincha
     {
       id_banco: bancosMap['PICHINCHA'].id_banco,
       numero_cuenta: '2204567891',
@@ -69,12 +70,41 @@ async function main() {
       activa: true,
     },
     {
+      id_banco: bancosMap['PICHINCHA'].id_banco,
+      numero_cuenta: '2209876543',
+      tipo_cuenta: 'Corriente',
+      titular_cuenta: 'Esteban Gabriel Morales',
+      cedula_titular: '1102938475',
+      saldo_cuenta: 3450.00,
+      activa: true,
+    },
+    // Banco Guayaquil
+    {
       id_banco: bancosMap['GUAYAQUIL'].id_banco,
       numero_cuenta: '2401234567',
       tipo_cuenta: 'Ahorros',
       titular_cuenta: 'Diana Sofía Viteri',
       cedula_titular: '1719283746',
       saldo_cuenta: 3890.20,
+      activa: true,
+    },
+    {
+      id_banco: bancosMap['GUAYAQUIL'].id_banco,
+      numero_cuenta: '2408765432',
+      tipo_cuenta: 'Corriente',
+      titular_cuenta: 'Diana Sofía Viteri',
+      cedula_titular: '1719283746',
+      saldo_cuenta: 2100.00,
+      activa: true,
+    },
+    // Produbanco
+    {
+      id_banco: bancosMap['PRODUBANCO'].id_banco,
+      numero_cuenta: '1701234567',
+      tipo_cuenta: 'Ahorros',
+      titular_cuenta: 'Fernando José Castro',
+      cedula_titular: '1709876543',
+      saldo_cuenta: 1540.00,
       activa: true,
     },
     {
@@ -86,6 +116,7 @@ async function main() {
       saldo_cuenta: 850.00,
       activa: true,
     },
+    // Banco del Pacífico
     {
       id_banco: bancosMap['PACIFICO'].id_banco,
       numero_cuenta: '3301928374',
@@ -93,6 +124,53 @@ async function main() {
       titular_cuenta: 'Valeria Nicole Pazmiño',
       cedula_titular: '0928374651',
       saldo_cuenta: 4500.00,
+      activa: true,
+    },
+    {
+      id_banco: bancosMap['PACIFICO'].id_banco,
+      numero_cuenta: '3309876541',
+      tipo_cuenta: 'Corriente',
+      titular_cuenta: 'Valeria Nicole Pazmiño',
+      cedula_titular: '0928374651',
+      saldo_cuenta: 1980.00,
+      activa: true,
+    },
+    // Banco Bolivariano
+    {
+      id_banco: bancosMap['BOLIVARIANO'].id_banco,
+      numero_cuenta: '0005123456',
+      tipo_cuenta: 'Ahorros',
+      titular_cuenta: 'Roberto Carlos Noboa',
+      cedula_titular: '0912457812',
+      saldo_cuenta: 3120.00,
+      activa: true,
+    },
+    {
+      id_banco: bancosMap['BOLIVARIANO'].id_banco,
+      numero_cuenta: '0005987654',
+      tipo_cuenta: 'Corriente',
+      titular_cuenta: 'Roberto Carlos Noboa',
+      cedula_titular: '0912457812',
+      saldo_cuenta: 4850.00,
+      activa: true,
+    },
+    // Cooperativa JEP
+    {
+      id_banco: bancosMap['JEP'].id_banco,
+      numero_cuenta: '4001234567',
+      tipo_cuenta: 'Ahorros',
+      titular_cuenta: 'Patricia Marisol Guamán',
+      cedula_titular: '0102938475',
+      saldo_cuenta: 950.00,
+      activa: true,
+    },
+    {
+      id_banco: bancosMap['JEP'].id_banco,
+      numero_cuenta: '4009876543',
+      tipo_cuenta: 'Corriente',
+      titular_cuenta: 'Patricia Marisol Guamán',
+      cedula_titular: '0102938475',
+      saldo_cuenta: 2300.00,
       activa: true,
     },
   ];
@@ -110,7 +188,7 @@ async function main() {
       create: ci,
     });
   }
-  console.log(`✅ Cuentas interbancarias simuladas listas: ${cuentasInterbancariasData.length} cuentas.`);
+  console.log(`✅ Cuentas interbancarias simuladas listas: ${cuentasInterbancariasData.length} cuentas (Ahorros y Corriente).`);
 
   // ==========================================
   // 4. USUARIOS LOCALES
@@ -156,11 +234,14 @@ async function main() {
   }
 
   const mainUser = usuariosCreados['lois_becket'];
+  const carlosUser = usuariosCreados['carlos_mendoza'];
+  const mariaUser = usuariosCreados['maria_rodriguez'];
 
   // ==========================================
-  // 5. CUENTAS LOCALES (Prestige Trust Bank)
+  // 5. CUENTAS LOCALES (Prestige Trust Bank: Ahorros y Corriente)
   // ==========================================
   const cuentasData = [
+    // Lois Becket (Usuario principal de prueba): Ahorros y Corriente
     {
       id_usuario: mainUser.id_usuario,
       tipo_cuenta: 'Ahorros',
@@ -168,18 +249,42 @@ async function main() {
       saldo_cuenta: 14500.50,
     },
     {
-      id_usuario: usuariosCreados['carlos_mendoza'].id_usuario,
+      id_usuario: mainUser.id_usuario,
+      tipo_cuenta: 'Corriente',
+      numero_cuenta: '1002345679',
+      saldo_cuenta: 3500.00,
+    },
+
+    // Carlos Andrés Mendoza: Ahorros y Corriente
+    {
+      id_usuario: carlosUser.id_usuario,
+      tipo_cuenta: 'Ahorros',
+      numero_cuenta: '1009876542',
+      saldo_cuenta: 1800.00,
+    },
+    {
+      id_usuario: carlosUser.id_usuario,
       tipo_cuenta: 'Corriente',
       numero_cuenta: '1009876543',
       saldo_cuenta: 2450.00,
     },
+
+    // María Elena Rodríguez: Ahorros y Corriente
     {
-      id_usuario: usuariosCreados['maria_rodriguez'].id_usuario,
+      id_usuario: mariaUser.id_usuario,
       tipo_cuenta: 'Ahorros',
       numero_cuenta: '1004567890',
       saldo_cuenta: 5120.75,
     },
+    {
+      id_usuario: mariaUser.id_usuario,
+      tipo_cuenta: 'Corriente',
+      numero_cuenta: '1004567891',
+      saldo_cuenta: 3200.00,
+    },
   ];
+
+  const cuentasCreadas: Record<string, any> = {};
 
   for (const c of cuentasData) {
     const cuenta = await prisma.cuenta.upsert({
@@ -190,11 +295,77 @@ async function main() {
       },
       create: c,
     });
+    cuentasCreadas[c.numero_cuenta] = cuenta;
     console.log(`🏦 Cuenta local: ${cuenta.tipo_cuenta} N° ${cuenta.numero_cuenta} ($${cuenta.saldo_cuenta.toFixed(2)})`);
   }
 
   // ==========================================
-  // 6. TARJETAS
+  // 6. SOLICITUDES DE CUENTA CORRIENTE (tabla `solicitudes_cuenta_corriente`)
+  // Contiene la información requerida del formulario:
+  // chequera, fiscal, agencia y débito de $350.00
+  // ==========================================
+  const solicitudesData = [
+    {
+      id_usuario: mainUser.id_usuario,
+      id_cuenta: cuentasCreadas['1002345679'].id_cuenta,
+      tiene_residencia_usa: false,
+      declara_impuestos_otro_pais: false,
+      modelo_chequera: 'Institucional',
+      numero_cheques: 20,
+      tipo_chequera: 'Con talón',
+      nombre_en_documentos: 'Lois Becket',
+      agencia_retiro: 'Agencia Principal Centro',
+      metodo_pago: 'DEBITO_AHORROS',
+      monto_apertura: 350.0,
+      estado: 'APROBADA',
+    },
+    {
+      id_usuario: carlosUser.id_usuario,
+      id_cuenta: cuentasCreadas['1009876543'].id_cuenta,
+      tiene_residencia_usa: false,
+      declara_impuestos_otro_pais: false,
+      modelo_chequera: 'Ondas',
+      numero_cheques: 50,
+      tipo_chequera: 'Con talón',
+      nombre_en_documentos: 'Carlos Andrés Mendoza',
+      agencia_retiro: 'Agencia Mall del Sol',
+      metodo_pago: 'DEBITO_AHORROS',
+      monto_apertura: 350.0,
+      estado: 'APROBADA',
+    },
+    {
+      id_usuario: mariaUser.id_usuario,
+      id_cuenta: cuentasCreadas['1004567891'].id_cuenta,
+      tiene_residencia_usa: false,
+      declara_impuestos_otro_pais: false,
+      modelo_chequera: 'Institucional zurdo',
+      numero_cheques: 20,
+      tipo_chequera: 'Sin talón',
+      nombre_en_documentos: 'María Elena Rodríguez',
+      agencia_retiro: 'Agencia Norte Plaza',
+      metodo_pago: 'DEBITO_AHORROS',
+      monto_apertura: 350.0,
+      estado: 'APROBADA',
+    },
+  ];
+
+  await prisma.solicitudCuentaCorriente.deleteMany({
+    where: {
+      id_usuario: {
+        in: Object.values(usuariosCreados).map((u) => u.id_usuario),
+      },
+    },
+  });
+
+  for (const s of solicitudesData) {
+    const solicitud = await prisma.solicitudCuentaCorriente.create({
+      data: s,
+    });
+    console.log(`📝 Solicitud cuenta corriente: ${solicitud.nombre_en_documentos} (${solicitud.modelo_chequera}, ${solicitud.numero_cheques} cheques) - ${solicitud.estado}`);
+  }
+
+  // ==========================================
+  // 7. TARJETAS
   // ==========================================
   const tarjetasData = [
     {
@@ -210,29 +381,34 @@ async function main() {
       saldo_tarjeta: 6200.00,
     },
     {
-      id_usuario: usuariosCreados['carlos_mendoza'].id_usuario,
+      id_usuario: carlosUser.id_usuario,
       nombre_tarjeta: 'Prestige Gold Card',
       numero_tarjeta: '**** 5519',
       saldo_tarjeta: 2450.00,
     },
+    {
+      id_usuario: mariaUser.id_usuario,
+      nombre_tarjeta: 'Prestige Visa Signature',
+      numero_tarjeta: '**** 7741',
+      saldo_tarjeta: 5120.75,
+    },
   ];
 
-  for (const t of tarjetasData) {
-    const existing = await prisma.tarjeta.findFirst({
-      where: {
-        id_usuario: t.id_usuario,
-        numero_tarjeta: t.numero_tarjeta,
+  await prisma.tarjeta.deleteMany({
+    where: {
+      id_usuario: {
+        in: Object.values(usuariosCreados).map((u) => u.id_usuario),
       },
-    });
+    },
+  });
 
-    if (!existing) {
-      await prisma.tarjeta.create({ data: t });
-      console.log(`💳 Tarjeta creada: ${t.nombre_tarjeta} (${t.numero_tarjeta})`);
-    }
+  for (const t of tarjetasData) {
+    await prisma.tarjeta.create({ data: t });
+    console.log(`💳 Tarjeta creada: ${t.nombre_tarjeta} (${t.numero_tarjeta})`);
   }
 
   // ==========================================
-  // 7. MOVIMIENTOS
+  // 8. MOVIMIENTOS
   // ==========================================
   const transferTypeId = tiposMovMap['transfer'].id_tipo_movimiento;
   const purchaseTypeId = tiposMovMap['purchase'].id_tipo_movimiento;
@@ -240,6 +416,22 @@ async function main() {
   const depositTypeId = tiposMovMap['deposit'].id_tipo_movimiento;
 
   const movimientosData = [
+    {
+      id_usuario: mainUser.id_usuario,
+      id_tipo_movimiento: transferTypeId,
+      nombre_movimiento: 'Apertura Cuenta Corriente (Débito $350.00)',
+      descripcion: 'Débito de $350.00 para saldo inicial de Cuenta Corriente N° 1002345679',
+      valor_movimiento: -350.00,
+      fecha_movimiento: new Date(Date.now() - 1000 * 60 * 60 * 120),
+    },
+    {
+      id_usuario: mainUser.id_usuario,
+      id_tipo_movimiento: transferTypeId,
+      nombre_movimiento: 'Depósito Inicial Apertura Cuenta Corriente',
+      descripcion: 'Depósito inicial transferido desde Cuenta de Ahorro N° 1002345678',
+      valor_movimiento: 350.00,
+      fecha_movimiento: new Date(Date.now() - 1000 * 60 * 60 * 120),
+    },
     {
       id_usuario: mainUser.id_usuario,
       id_tipo_movimiento: transferTypeId,
@@ -253,7 +445,7 @@ async function main() {
       id_tipo_movimiento: transferTypeId,
       nombre_movimiento: 'Transferencia interbancaria a Esteban Gabriel Morales (Banco Pichincha)',
       descripcion: 'Pago cuota servicios compartidos',
-      valor_movimiento: -60.00,
+      valor_movimiento: -60.45,
       fecha_movimiento: new Date(Date.now() - 1000 * 60 * 60 * 6),
     },
     {
@@ -289,7 +481,7 @@ async function main() {
       fecha_movimiento: new Date(Date.now() - 1000 * 60 * 60 * 96),
     },
     {
-      id_usuario: usuariosCreados['carlos_mendoza'].id_usuario,
+      id_usuario: carlosUser.id_usuario,
       id_tipo_movimiento: transferTypeId,
       nombre_movimiento: 'Transferencia de Lois Becket',
       descripcion: 'Almuerzo, Cuota arriendo',

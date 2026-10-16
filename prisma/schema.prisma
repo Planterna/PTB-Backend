@@ -18,24 +18,26 @@ model Usuario {
   fecha_creacion      DateTime @default(now())
   fecha_actualizacion DateTime @updatedAt
 
-  tarjetas            Tarjeta[]
-  cuentas             Cuenta[]
-  movimientos         Movimiento[]
+  tarjetas                    Tarjeta[]
+  cuentas                     Cuenta[]
+  movimientos                 Movimiento[]
+  solicitudes_cuenta_corriente SolicitudCuentaCorriente[]
 
   @@map("usuarios")
 }
 
 model Cuenta {
-  id_cuenta           String   @id @default(uuid()) @db.Uuid
-  id_usuario          String   @db.Uuid
-  tipo_cuenta         String   @db.VarChar(50) // 'Ahorros' | 'Corriente'
-  numero_cuenta       String   @unique @db.VarChar(20)
-  saldo_cuenta        Float    @default(0.0)
+  id_cuenta                   String   @id @default(uuid()) @db.Uuid
+  id_usuario                  String   @db.Uuid
+  tipo_cuenta                 String   @db.VarChar(50) // 'Ahorros' | 'Corriente'
+  numero_cuenta               String   @unique @db.VarChar(20)
+  saldo_cuenta                Float    @default(0.0)
   
-  fecha_creacion      DateTime @default(now())
-  fecha_actualizacion DateTime @updatedAt
+  fecha_creacion              DateTime @default(now())
+  fecha_actualizacion         DateTime @updatedAt
 
-  usuario             Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  usuario                     Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  solicitudes_cuenta_corriente SolicitudCuentaCorriente[]
 
   @@map("cuentas")
 }
@@ -113,4 +115,34 @@ model CuentaInterbancaria {
   banco                   Banco    @relation(fields: [id_banco], references: [id_banco], onDelete: Cascade)
 
   @@map("cuentas_interbancarias")
+}
+
+model SolicitudCuentaCorriente {
+  id_solicitud                String   @id @default(uuid()) @db.Uuid
+  id_usuario                  String   @db.Uuid
+  id_cuenta                   String?  @db.Uuid
+  
+  // Información migratoria y fiscal (s1.jpeg)
+  tiene_residencia_usa        Boolean  @default(false)
+  declara_impuestos_otro_pais Boolean  @default(false)
+  
+  // Chequera y tarjeta (s.jpeg)
+  modelo_chequera             String   @db.VarChar(100) // 'Institucional' | 'Institucional zurdo' | 'Ondas'
+  numero_cheques              Int      @default(20)    // 20 | 50
+  tipo_chequera               String   @db.VarChar(50)  // 'Con talón' | 'Sin talón'
+  nombre_en_documentos        String   @db.VarChar(255)
+  agencia_retiro              String   @db.VarChar(255)
+  
+  // Datos del pago / apertura
+  metodo_pago                 String   @db.VarChar(50)  // 'DEBITO_AHORROS' | 'PAGO_VENTANILLA'
+  monto_apertura              Float    @default(350.0)
+  estado                      String   @db.VarChar(50)  @default("APROBADA") // 'APROBADA' | 'PENDIENTE_VENTANILLA'
+  
+  fecha_creacion              DateTime @default(now())
+  fecha_actualizacion         DateTime @updatedAt
+
+  usuario                     Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  cuenta                      Cuenta?  @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: SetNull)
+
+  @@map("solicitudes_cuenta_corriente")
 }

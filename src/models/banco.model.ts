@@ -46,6 +46,8 @@ export interface TransferenciaInterbancariaResponse {
     titular_origen: string;
     titular_destino: string;
     monto: number;
+    comision?: number;
+    total_debitado?: number;
     descripcion?: string | null;
     saldo_restante_origen: number;
     fecha: Date;

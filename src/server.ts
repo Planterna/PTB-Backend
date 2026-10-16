@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.routes';
 import tarjetasRoutes from './routes/tarjetas.routes';
 import movimientosRoutes from './routes/movimientos.routes';
 import cuentasRoutes from './routes/cuentas.routes';
+import usuarioRoutes from './routes/usuario.routes';
 import { setupSwagger } from './config/swagger';
 import { errorHandler } from './middlewares/error.middleware';
 
@@ -20,6 +21,7 @@ app.use(express.json());
 setupSwagger(app);
 
 app.use('/api/auth', authRoutes);
+app.use('/api/usuario', usuarioRoutes);
 app.use('/api/cuentas', cuentasRoutes);
 app.use('/api/tarjetas', tarjetasRoutes);
 app.use('/api/movimientos', movimientosRoutes);

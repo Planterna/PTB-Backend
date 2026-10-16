@@ -92,6 +92,17 @@ export const validarCuentaInterbancaria = async (
 export const transferir = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const id_usuario = req.user?.id;
+    const banco = req.body?.banco;
+    const esInterbancaria =
+      req.body?.es_interbancaria === true ||
+      (banco && !banco.toLowerCase().includes('prestige'));
+
+    if (esInterbancaria) {
+      const resultado = await cuentasService.realizarTransferenciaInterbancaria(id_usuario, req.body);
+      res.status(200).json(resultado);
+      return;
+    }
+
     const resultado = await cuentasService.realizarTransferencia(id_usuario, req.body);
     res.status(200).json(resultado);
   } catch (error) {
@@ -108,6 +119,34 @@ export const transferirInterbancaria = async (
     const id_usuario = req.user?.id;
     const resultado = await cuentasService.realizarTransferenciaInterbancaria(id_usuario, req.body);
     res.status(200).json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const crearCuentaCorriente = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const resultado = await cuentasService.crearCuentaCorriente(id_usuario, req.body);
+    res.status(201).json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSolicitudesCuentaCorriente = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const solicitudes = await cuentasService.getSolicitudesCuentaCorriente(id_usuario);
+    res.status(200).json(solicitudes);
   } catch (error) {
     next(error);
   }

@@ -371,25 +371,25 @@ async function main() {
     {
       id_usuario: mainUser.id_usuario,
       nombre_tarjeta: 'Prestige Visa Platinum',
-      numero_tarjeta: '**** 4022',
+      numero_tarjeta: '1234-5678-4022-3245',
       saldo_tarjeta: 14500.50,
     },
     {
       id_usuario: mainUser.id_usuario,
       nombre_tarjeta: 'Prestige Mastercard Black',
-      numero_tarjeta: '**** 8831',
+      numero_tarjeta: '1021-1235-7343-8831',
       saldo_tarjeta: 6200.00,
     },
     {
       id_usuario: carlosUser.id_usuario,
       nombre_tarjeta: 'Prestige Gold Card',
-      numero_tarjeta: '**** 5519',
+      numero_tarjeta: '4612-1231-5234-5519',
       saldo_tarjeta: 2450.00,
     },
     {
       id_usuario: mariaUser.id_usuario,
       nombre_tarjeta: 'Prestige Visa Signature',
-      numero_tarjeta: '**** 7741',
+      numero_tarjeta: '1232-0809-5832-7741',
       saldo_tarjeta: 5120.75,
     },
   ];

@@ -1,14 +1,20 @@
 import { Request, Response, NextFunction } from 'express';
-import { env } from '../config/env.config';
+import { HttpError } from '../errors/http.error';
 
-export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {
-  console.error('Unhandled error:', err);
-  
-  const statusCode = err.statusCode || 500;
-  const message = err.message || 'Error interno del servidor';
-  
-  res.status(statusCode).json({
-    error: message,
-    ...(env.NODE_ENV === 'development' && { stack: err.stack }),
-  });
+export const errorHandler = (
+  err: Error,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
+  if (err instanceof HttpError) {
+    res.status(err.statusCode).json({
+      error: err.message,
+      ...(err.details ? { details: err.details } : {}),
+    });
+    return;
+  }
+
+  console.error('Unhandled Error:', err);
+  res.status(500).json({ error: 'Error interno del servidor' });
 };

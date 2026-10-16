@@ -5,9 +5,11 @@ import authRoutes from './routes/auth.routes';
 import tarjetasRoutes from './routes/tarjetas.routes';
 import movimientosRoutes from './routes/movimientos.routes';
 import cuentasRoutes from './routes/cuentas.routes';
+import usuarioRoutes from './routes/usuario.routes';
 import { setupSwagger } from './config/swagger';
 import { errorHandler } from './middlewares/error.middleware';
-import { env } from './config/env.config';
+
+dotenv.config();
 
 const app = express();
 const PORT = env.PORT;
@@ -19,6 +21,8 @@ app.use(express.json());
 setupSwagger(app);
 
 app.use('/api/auth', authRoutes);
+app.use('/api/usuario', usuarioRoutes);
+app.use('/api/cuentas', cuentasRoutes);
 app.use('/api/tarjetas', tarjetasRoutes);
 app.use('/api/cuentas', cuentasRoutes);
 app.use('/api/movimientos', movimientosRoutes);
@@ -27,13 +31,9 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Global error handler
+// Middleware centralizado de manejo de errores
 app.use(errorHandler);
 
-if (env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
-
-export default app;
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT} (0.0.0.0)`);
+});

@@ -12,22 +12,35 @@ model Usuario {
   id_usuario          String   @id @default(uuid()) @db.Uuid
   cedula_usuario      String   @unique @db.VarChar(10)
   nombres_usuario     String   @db.VarChar(255)
+  usuario             String   @unique @db.VarChar(50)
   email_usuario       String   @unique @db.VarChar(255)
   password_usuario    String   @db.VarChar(255)
   
   fecha_creacion      DateTime @default(now())
   fecha_actualizacion DateTime @updatedAt
 
-  tarjetas            Tarjeta[]
-  cuentas             Cuenta[]
-  movimientos         Movimiento[]
+  tarjetas                    Tarjeta[]
+  cuentas                     Cuenta[]
+  movimientos                 Movimiento[]
+  solicitudes_cuenta_corriente SolicitudCuentaCorriente[]
 
   @@map("usuarios")
 }
 
-enum TipoTarjeta {
-  debito
-  credito
+model Cuenta {
+  id_cuenta                   String   @id @default(uuid()) @db.Uuid
+  id_usuario                  String   @db.Uuid
+  tipo_cuenta                 String   @db.VarChar(50) // 'Ahorros' | 'Corriente'
+  numero_cuenta               String   @unique @db.VarChar(20)
+  saldo_cuenta                Float    @default(0.0)
+  
+  fecha_creacion              DateTime @default(now())
+  fecha_actualizacion         DateTime @updatedAt
+
+  usuario                     Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  solicitudes_cuenta_corriente SolicitudCuentaCorriente[]
+
+  @@map("cuentas")
 }
 
 model Tarjeta {
@@ -47,49 +60,92 @@ model Tarjeta {
   @@map("tarjetas")
 }
 
-enum TipoCuenta {
-  ahorro
-  corriente
-}
-
-model Cuenta {
-  id_cuenta           String   @id @default(uuid()) @db.Uuid
-  id_usuario          String   @db.Uuid
-  tipo_cuenta         TipoCuenta
-  numero_cuenta       String   @unique @db.VarChar(10)
-  saldo_cuenta        Float    @default(0.0)
-  
-  fecha_creacion      DateTime @default(now())
-  fecha_actualizacion DateTime @updatedAt
-
-  usuario             Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+model TipoMovimiento {
+  id_tipo_movimiento  String       @id @default(uuid()) @db.Uuid
+  codigo              String       @unique @db.VarChar(50) // 'transfer', 'purchase', 'subscription', 'deposit'
+  nombre              String       @db.VarChar(100)        // 'Transferencia', 'Compra', 'Suscripción', 'Depósito'
+  descripcion         String?      @db.VarChar(255)
   movimientos         Movimiento[]
-  tarjetas            Tarjeta[]
 
-  @@map("cuentas")
-}
-
-enum TipoMovimiento {
-  transfer
-  purchase
-  subscription
-  deposit
+  @@map("tipos_movimiento")
 }
 
 model Movimiento {
-  id_movimiento       String   @id @default(uuid()) @db.Uuid
-  id_usuario          String   @db.Uuid
-  id_cuenta           String   @db.Uuid
-  nombre_movimiento   String   @db.VarChar(255)
+  id_movimiento       String          @id @default(uuid()) @db.Uuid
+  id_usuario          String          @db.Uuid
+  id_tipo_movimiento  String?         @db.Uuid
+  nombre_movimiento   String          @db.VarChar(255)
+  descripcion         String?         @db.VarChar(255)
   valor_movimiento    Float
-  fecha_movimiento    DateTime @default(now())
-  tipo_movimiento     TipoMovimiento
+  fecha_movimiento    DateTime        @default(now())
   
-  fecha_creacion      DateTime @default(now())
-  fecha_actualizacion DateTime @updatedAt
+  fecha_creacion      DateTime        @default(now())
+  fecha_actualizacion DateTime        @updatedAt
 
-  usuario             Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
-  cuenta              Cuenta   @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: Cascade)
+  usuario             Usuario         @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  tipo_movimiento     TipoMovimiento? @relation(fields: [id_tipo_movimiento], references: [id_tipo_movimiento])
 
   @@map("movimientos")
+}
+
+model Banco {
+  id_banco               String                 @id @default(uuid()) @db.Uuid
+  codigo_banco           String                 @unique @db.VarChar(50) // 'PTB', 'PICHINCHA', 'GUAYAQUIL', etc.
+  nombre_banco           String                 @unique @db.VarChar(100)
+  es_banco_local         Boolean                @default(false)
+  
+  fecha_creacion          DateTime               @default(now())
+  fecha_actualizacion     DateTime               @updatedAt
+
+  cuentas_interbancarias CuentaInterbancaria[]
+
+  @@map("bancos")
+}
+
+model CuentaInterbancaria {
+  id_cuenta_interbancaria String   @id @default(uuid()) @db.Uuid
+  id_banco                String   @db.Uuid
+  numero_cuenta           String   @unique @db.VarChar(20)
+  tipo_cuenta             String   @db.VarChar(50) // 'Ahorros' | 'Corriente'
+  titular_cuenta          String   @db.VarChar(255)
+  cedula_titular          String   @db.VarChar(10)
+  saldo_cuenta            Float    @default(0.0)
+  activa                  Boolean  @default(true)
+  
+  fecha_creacion          DateTime @default(now())
+  fecha_actualizacion     DateTime @updatedAt
+
+  banco                   Banco    @relation(fields: [id_banco], references: [id_banco], onDelete: Cascade)
+
+  @@map("cuentas_interbancarias")
+}
+
+model SolicitudCuentaCorriente {
+  id_solicitud                String   @id @default(uuid()) @db.Uuid
+  id_usuario                  String   @db.Uuid
+  id_cuenta                   String?  @db.Uuid
+  
+  // Información migratoria y fiscal (s1.jpeg)
+  tiene_residencia_usa        Boolean  @default(false)
+  declara_impuestos_otro_pais Boolean  @default(false)
+  
+  // Chequera y tarjeta (s.jpeg)
+  modelo_chequera             String   @db.VarChar(100) // 'Institucional' | 'Institucional zurdo' | 'Ondas'
+  numero_cheques              Int      @default(20)    // 20 | 50
+  tipo_chequera               String   @db.VarChar(50)  // 'Con talón' | 'Sin talón'
+  nombre_en_documentos        String   @db.VarChar(255)
+  agencia_retiro              String   @db.VarChar(255)
+  
+  // Datos del pago / apertura
+  metodo_pago                 String   @db.VarChar(50)  // 'DEBITO_AHORROS' | 'PAGO_VENTANILLA'
+  monto_apertura              Float    @default(350.0)
+  estado                      String   @db.VarChar(50)  @default("APROBADA") // 'APROBADA' | 'PENDIENTE_VENTANILLA'
+  
+  fecha_creacion              DateTime @default(now())
+  fecha_actualizacion         DateTime @updatedAt
+
+  usuario                     Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  cuenta                      Cuenta?  @relation(fields: [id_cuenta], references: [id_cuenta], onDelete: SetNull)
+
+  @@map("solicitudes_cuenta_corriente")
 }

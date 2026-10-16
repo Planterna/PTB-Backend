@@ -27,22 +27,36 @@ const router = Router();
  *             required:
  *               - cedula
  *               - nombres
+ *               - usuario
  *               - email
  *               - password
  *             properties:
  *               cedula:
  *                 type: string
+ *                 example: "0912345678"
  *               nombres:
  *                 type: string
+ *                 example: "Lois Becket"
+ *               usuario:
+ *                 type: string
+ *                 pattern: "^[a-zA-Z0-9_-]+$"
+ *                 description: "Nombre de usuario (solo texto, números, guion bajo y guion medio)"
+ *                 example: "lois_becket-01"
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: "loisbecket@gmail.com"
  *               password:
  *                 type: string
+ *                 format: password
+ *                 example: "password123"
  *     responses:
  *       201:
  *         description: Usuario registrado exitosamente
  *       400:
- *         description: Error en la solicitud o el usuario ya existe
+ *         description: Error en la solicitud o formato inválido del campo usuario
+ *       409:
+ *         description: Conflicto - el nombre de usuario, cédula o email ya se encuentra registrado
  */
 router.post('/register', validate(registerSchema), register);
 
@@ -51,6 +65,7 @@ router.post('/register', validate(registerSchema), register);
  * /api/auth/login:
  *   post:
  *     summary: Iniciar sesión
+ *     description: Autenticación mediante nombre de usuario y contraseña (ya no utiliza email)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -59,16 +74,20 @@ router.post('/register', validate(registerSchema), register);
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - usuario
  *               - password
  *             properties:
- *               email:
+ *               usuario:
  *                 type: string
+ *                 example: "lois_becket"
  *               password:
  *                 type: string
+ *                 example: "password123"
  *     responses:
  *       200:
- *         description: Login exitoso, devuelve el JWT
+ *         description: Login exitoso, devuelve el JWT y la información del usuario
+ *       400:
+ *         description: Nombre de usuario o contraseña faltantes
  *       401:
  *         description: Credenciales inválidas
  *       400:

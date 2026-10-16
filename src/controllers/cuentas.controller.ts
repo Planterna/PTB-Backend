@@ -1,60 +1,153 @@
-import { Request, Response } from 'express';
-import prisma from '../config/prisma';
+import { Response, NextFunction } from 'express';
+import { AuthRequest } from '../middlewares/auth.middleware';
+import { cuentasService } from '../services/cuentas.service';
 
-export const getCuentas = async (req: Request, res: Response): Promise<void> => {
-  const id_usuario = req.user!.id; // Ya garantizado por auth.middleware
-
-  const cuentas = await prisma.cuenta.findMany({
-    where: { id_usuario },
-    orderBy: { fecha_creacion: 'desc' },
-    include: { movimientos: true }
-  });
-
-  res.status(200).json(cuentas);
+export const getBancos = async (_req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const bancos = await cuentasService.getBancos();
+    res.status(200).json(bancos);
+  } catch (error) {
+    next(error);
+  }
 };
 
-export const createCuenta = async (req: Request, res: Response): Promise<void> => {
-  const id_usuario = req.user!.id;
-  const { tipo_cuenta, saldo_cuenta } = req.body;
+export const getCuentas = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const cuentas = await cuentasService.getCuentas(id_usuario);
+    res.status(200).json(cuentas);
+  } catch (error) {
+    next(error);
+  }
+};
 
-  if (tipo_cuenta === 'corriente') {
-    const existingCorriente = await prisma.cuenta.findFirst({
-      where: {
-        id_usuario,
-        tipo_cuenta: 'corriente'
-      }
-    });
+export const createCuenta = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const nuevaCuenta = await cuentasService.createCuenta(id_usuario, req.body);
+    res.status(201).json(nuevaCuenta);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    if (existingCorriente) {
-      res.status(400).json({ error: 'Ya tienes una cuenta corriente creada. Solo se permite una por usuario.' });
+export const validarCuenta = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const numero_cuenta =
+      req.body?.numero_cuenta ||
+      req.params?.numero_cuenta ||
+      (req.query?.numero_cuenta as string);
+
+    const banco = req.body?.banco || (req.query?.banco as string);
+    const esInterbancaria =
+      req.body?.es_interbancaria === true ||
+      (banco && !banco.toLowerCase().includes('prestige'));
+
+    // Si se especifica que es interbancaria o de otro banco, se valida en la tabla de simulación
+    if (esInterbancaria) {
+      const verified = await cuentasService.validarCuentaInterbancaria(numero_cuenta, banco);
+      res.status(200).json({
+        valida: true,
+        tipo: 'interbancaria',
+        cuenta: verified,
+      });
       return;
     }
-  }
 
-  // Generar número de cuenta aleatorio de 10 dígitos empezando en 10
-  let random8 = Math.floor(10000000 + Math.random() * 90000000).toString();
-  let numero_cuenta = `10${random8}`;
-
-  let existingCuenta = await prisma.cuenta.findUnique({
-    where: { numero_cuenta }
-  });
-
-  while (existingCuenta) {
-    random8 = Math.floor(10000000 + Math.random() * 90000000).toString();
-    numero_cuenta = `10${random8}`;
-    existingCuenta = await prisma.cuenta.findUnique({
-      where: { numero_cuenta }
+    const verifiedAccount = await cuentasService.validarCuenta(numero_cuenta);
+    res.status(200).json({
+      valida: true,
+      tipo: 'local',
+      cuenta: verifiedAccount,
     });
+  } catch (error) {
+    next(error);
   }
+};
 
-  const nuevaCuenta = await prisma.cuenta.create({
-    data: {
-      id_usuario,
-      tipo_cuenta,
-      numero_cuenta,
-      saldo_cuenta,
-    },
-  });
+export const validarCuentaInterbancaria = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const numero_cuenta =
+      req.body?.numero_cuenta ||
+      req.params?.numero_cuenta ||
+      (req.query?.numero_cuenta as string);
 
-  res.status(201).json(nuevaCuenta);
+    const banco = req.body?.banco || (req.query?.banco as string);
+
+    const verified = await cuentasService.validarCuentaInterbancaria(numero_cuenta, banco);
+    res.status(200).json({
+      valida: true,
+      tipo: 'interbancaria',
+      cuenta: verified,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const transferir = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const banco = req.body?.banco;
+    const esInterbancaria =
+      req.body?.es_interbancaria === true ||
+      (banco && !banco.toLowerCase().includes('prestige'));
+
+    if (esInterbancaria) {
+      const resultado = await cuentasService.realizarTransferenciaInterbancaria(id_usuario, req.body);
+      res.status(200).json(resultado);
+      return;
+    }
+
+    const resultado = await cuentasService.realizarTransferencia(id_usuario, req.body);
+    res.status(200).json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const transferirInterbancaria = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const resultado = await cuentasService.realizarTransferenciaInterbancaria(id_usuario, req.body);
+    res.status(200).json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const crearCuentaCorriente = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const resultado = await cuentasService.crearCuentaCorriente(id_usuario, req.body);
+    res.status(201).json(resultado);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getSolicitudesCuentaCorriente = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const id_usuario = req.user?.id;
+    const solicitudes = await cuentasService.getSolicitudesCuentaCorriente(id_usuario);
+    res.status(200).json(solicitudes);
+  } catch (error) {
+    next(error);
+  }
 };

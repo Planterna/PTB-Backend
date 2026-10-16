@@ -53,11 +53,19 @@ router.get('/', getMovimientos);
  *             properties:
  *               nombre_movimiento:
  *                 type: string
+ *                 example: "Transferencia a Juan"
+ *               descripcion:
+ *                 type: string
+ *                 nullable: true
+ *                 description: "Detalle o motivo opcional del movimiento"
+ *                 example: "Almuerzo, Cuota arriendo"
  *               valor_movimiento:
  *                 type: number
+ *                 example: -150.00
  *               tipo_movimiento:
  *                 type: string
  *                 enum: [transfer, purchase, subscription, deposit]
+ *                 example: "transfer"
  *     responses:
  *       201:
  *         description: Movimiento creado exitosamente
